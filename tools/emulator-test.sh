@@ -16,7 +16,12 @@ adb install -r FreeMyTV.apk || { echo "install failed"; exit 1; }
 # What the TV lists: evidence for which inputs the editor can show.
 adb shell dumpsys tv_input > emulator-shots/tv-inputs.txt 2>&1 || true
 
-adb shell cmd package set-home-activity io.freemytv/.HomeActivity || true
+# Take the HOME role from the setup wizard, then make Free My TV the home screen like the in-app switch does.
+adb shell cmd role get-role-holders --user 0 android.app.role.HOME > emulator-shots/home-role.txt 2>&1 || true
+CUR=$(adb shell cmd role get-role-holders --user 0 android.app.role.HOME | tr -d '\r' | tail -1)
+[ -n "$CUR" ] && adb shell cmd role remove-role-holder --user 0 android.app.role.HOME "$CUR" >> emulator-shots/home-role.txt 2>&1 || true
+adb shell cmd role add-role-holder --user 0 android.app.role.HOME io.freemytv >> emulator-shots/home-role.txt 2>&1 || true
+adb shell cmd package set-home-activity io.freemytv/.HomeActivity >> emulator-shots/home-role.txt 2>&1 || true
 adb shell input keyevent KEYCODE_HOME
 sleep 8
 adb exec-out screencap -p > emulator-shots/1-home.png
@@ -40,6 +45,7 @@ adb exec-out screencap -p > emulator-shots/3-inputs-edited.png
 adb shell input keyevent BACK; sleep 2
 adb shell input keyevent BACK; sleep 2
 adb shell input keyevent KEYCODE_HOME; sleep 5
+adb shell input keyevent DPAD_LEFT; sleep 2
 adb exec-out screencap -p > emulator-shots/4-home-after.png
 adb shell dumpsys tv_input > emulator-shots/tv-inputs-after.txt 2>&1 || true
 exit 0
