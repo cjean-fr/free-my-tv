@@ -7,6 +7,10 @@ adb wait-for-device
 adb shell input keyevent KEYCODE_WAKEUP
 sleep 2
 adb shell settings put system screen_off_timeout 1800000 || true
+# Skip the first-boot setup wizard so HOME reaches the home screen.
+adb shell settings put global device_provisioned 1 || true
+adb shell settings put secure user_setup_complete 1 || true
+adb shell settings put secure tv_user_setup_complete 1 || true
 
 adb install -r FreeMyTV.apk || { echo "install failed"; exit 1; }
 # What the TV lists: evidence for which inputs the editor can show.
